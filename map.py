@@ -16,14 +16,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with this code.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-MAP_SIZE_PIXELS = 500
-MAP_SIZE_METERS = 10
+MAP_SIZE_PIXELS = 500 #in pixels
+MAP_SIZE_METERS = 15 #in meters
 LIDAR_DEVICE = 'COM6'
 
 # Ideally we could use all 250 or so samples that the RPLidar delivers in one
 # scan, but on slower computers you'll get an empty map and unchanging position
 # at that rate.
-MIN_SAMPLES = 100
+MIN_SAMPLES = 180
 
 from breezyslam.algorithms import RMHC_SLAM
 from breezyslam.sensors import RPLidarA1 as LaserModel
@@ -31,7 +31,6 @@ from rplidar import RPLidar as Lidar
 from roboviz import MapVisualizer
 import cv2 as cv
 import numpy as np
-
 
 if __name__ == '__main__':
 
@@ -82,14 +81,40 @@ if __name__ == '__main__':
         # Get current robot position
         x, y, theta = slam.getpos()
 
+        x_pix, y_pix = (x/1000)*(MAP_SIZE_PIXELS/MAP_SIZE_METERS), (y/1000)*(MAP_SIZE_PIXELS/MAP_SIZE_METERS)
+
+
+        print("Coord: ", x_pix, y_pix, theta)
+
+
         # Get current map bytes as grayscale
         slam.getmap(mapbytes)
 
         #img = cv.imread(mapbytes, 0)
         #decoded = cv.imdecode(np.frombuffer(mapbytes, np.uint8), -1)
-        mapimg = np.reshape(np.frombuffer(mapbytes, dtype=np.uint8), (500, 500))
 
-        cv.imshow("Map", mapimg, cmap=colormap.gray)
+        mapimg = np.reshape(np.frombuffer(mapbytes, dtype=np.uint8), (MAP_SIZE_PIXELS, MAP_SIZE_PIXELS))
+
+        map_RGB = np.dstack([mapimg, mapimg, mapimg])
+
+        #radius = 10
+        #xDir = round(radius*math.cos(theta)+x_pix)
+        #yDir = round(radius*math.sin(theta)+y_pix)
+
+
+        map_RGB = cv.circle(map_RGB, (round(x_pix), round(y_pix)), 10, (0, 0, 255), -1)
+        #map_RGB = cv.circle(map_RGB, (xDir, yDir), 5, (255, 0, 0), -1)
+        #rot = cv.getRotationMatrix2D((MAP_SIZE_PIXELS/2, MAP_SIZE_PIXELS/2), 90, 1)
+
+        #rotate map so that top is front
+        #map_RGB = cv.warpAffine(map_RGB,rot,mapimg.shape)
+
+        map_RGB = cv.putText(map_RGB, 'Wisp Map - Size(m): ' + str(MAP_SIZE_METERS) + 'x' + str(MAP_SIZE_METERS), (1,30), cv.FONT_HERSHEY_SIMPLEX,
+                            1, (255,0,0), 2, cv.LINE_AA)
+
+        cv.imshow("Map", map_RGB)
+        cv.waitKey(100)
+
         #mapMAT = cv.fromarray(mapimg)
 
 
