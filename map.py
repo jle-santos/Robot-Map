@@ -84,7 +84,7 @@ if __name__ == '__main__':
         x_pix, y_pix = (x/1000)*(MAP_SIZE_PIXELS/MAP_SIZE_METERS), (y/1000)*(MAP_SIZE_PIXELS/MAP_SIZE_METERS)
 
 
-        print("Coord: ", x_pix, y_pix, theta)
+        #print("Coord: ", x_pix, y_pix, theta)
 
 
         # Get current map bytes as grayscale
@@ -112,12 +112,14 @@ if __name__ == '__main__':
         map_RGB = cv.putText(map_RGB, 'Wisp Map - Size(m): ' + str(MAP_SIZE_METERS) + 'x' + str(MAP_SIZE_METERS), (1,30), cv.FONT_HERSHEY_SIMPLEX,
                             1, (255,0,0), 2, cv.LINE_AA)
 
+        map_RGB = cv.putText(map_RGB, '(X,Y,D)(px): ' + str(round(x_pix)) + ',' + str(round(y_pix)) + ',' + str(round(theta)) + 'deg', (1,60), cv.FONT_HERSHEY_SIMPLEX,
+                             1, (0,255,0),1, cv.LINE_AA)
+
+
         cv.imshow("Map", map_RGB)
         cv.waitKey(100)
 
         #mapMAT = cv.fromarray(mapimg)
-
-
         #print(type(mapMAT))
         #cv.imshow("Map", img)
 
